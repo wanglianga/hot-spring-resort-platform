@@ -1,0 +1,67 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #f0f2f5;
+}
+
+.app-layout {
+  min-height: 100vh;
+}
+
+.app-header {
+  background: #001529;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.app-logo {
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.app-user-info {
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-content {
+  margin: 24px;
+}
+
+.stat-card {
+  text-align: center;
+}
+
+.stat-card .ant-statistic-title {
+  font-size: 14px;
+}
+
+.pool-card {
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.pool-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.pool-status-open {
+  border-left: 4px solid #52c41a;
+}
+
+.pool-status-closed {
+  border-left: 4px solid #ff4d4f;
+}
+
+.pool-status-maintenance {
+  border-left: 4px solid #faad14;
+}

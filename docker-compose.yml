@@ -1,0 +1,18 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hot-spring-platform
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DB_PATH=./data/hotspring.db
+    volumes:
+      - hotspring-data:/app/backend/data
+    restart: unless-stopped
+
+volumes:
+  hotspring-data:
