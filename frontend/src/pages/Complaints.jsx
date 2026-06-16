@@ -1,8 +1,19 @@
 import { useState, useEffect } from 'react';
-import {
-  Card, Table, Button, Modal, Form, Input, Select, Space, Typography, Tag,
-  Switch, Descriptions, message, Drawer
-} from 'antd';
+import { Card } from 'antd';
+import { Table } from 'antd';
+import { Button } from 'antd';
+import { Modal } from 'antd';
+import { Form } from 'antd';
+import { Input } from 'antd';
+import { InputNumber } from 'antd';
+import { Select } from 'antd';
+import { Space } from 'antd';
+import { Typography } from 'antd';
+import { Tag } from 'antd';
+import { Switch } from 'antd';
+import { Descriptions } from 'antd';
+import { message } from 'antd';
+import { Drawer } from 'antd';
 import { PlusOutlined, EyeOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { complaintsApi, poolsApi, usersApi, compensationsApi } from '../api';
