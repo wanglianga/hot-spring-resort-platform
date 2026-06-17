@@ -79,4 +79,39 @@ export const statsApi = {
   poolDetail: (poolId) => api.get(`/stats/pool/${poolId}`)
 };
 
+export const poolAbnormalReportsApi = {
+  list: (params) => api.get('/pool-abnormal-reports', { params }),
+  get: (id) => api.get(`/pool-abnormal-reports/${id}`),
+  create: (data) => api.post('/pool-abnormal-reports', data),
+  updateStatus: (id, data) => api.put(`/pool-abnormal-reports/${id}/status`, data)
+};
+
+export const poolAbnormalDecisionsApi = {
+  list: (params) => api.get('/pool-abnormal-decisions', { params }),
+  create: (data) => api.post('/pool-abnormal-decisions', data)
+};
+
+export const guestNotificationsApi = {
+  list: (params) => api.get('/guest-notifications', { params }),
+  create: (data) => api.post('/guest-notifications', data)
+};
+
+export const retestRecordsApi = {
+  list: (params) => api.get('/retest-records', { params }),
+  create: (data) => api.post('/retest-records', data)
+};
+
+export const groupConflictsApi = {
+  list: (params) => api.get('/group-conflicts', { params }),
+  get: (id) => api.get(`/group-conflicts/${id}`),
+  create: (data) => api.post('/group-conflicts', data),
+  updateStatus: (id, data) => api.put(`/group-conflicts/${id}/status`, data),
+  updateArrival: (id, data) => api.put(`/group-conflicts/${id}/arrival`, data)
+};
+
+export const conflictAdjustmentsApi = {
+  list: (params) => api.get('/conflict-adjustments', { params }),
+  create: (data) => api.post('/conflict-adjustments', data)
+};
+
 export default api;

@@ -194,6 +194,117 @@ function initDatabase() {
       updated_at TEXT NOT NULL,
       FOREIGN KEY (complaint_id) REFERENCES complaints(id)
     );
+
+    CREATE TABLE IF NOT EXISTS pool_abnormal_reports (
+      id TEXT PRIMARY KEY,
+      pool_id TEXT NOT NULL,
+      abnormal_type TEXT NOT NULL,
+      temperature REAL,
+      water_level REAL,
+      mineral_level REAL,
+      foam_level TEXT,
+      reading_data TEXT,
+      photo_url TEXT,
+      status TEXT NOT NULL DEFAULT 'pending',
+      operator_id TEXT NOT NULL,
+      operator_name TEXT NOT NULL,
+      notes TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (pool_id) REFERENCES pools(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS pool_abnormal_decisions (
+      id TEXT PRIMARY KEY,
+      report_id TEXT NOT NULL,
+      pool_id TEXT NOT NULL,
+      decision_type TEXT NOT NULL,
+      affected_people_count INTEGER DEFAULT 0,
+      operator_id TEXT NOT NULL,
+      operator_name TEXT NOT NULL,
+      notes TEXT,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (report_id) REFERENCES pool_abnormal_reports(id),
+      FOREIGN KEY (pool_id) REFERENCES pools(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS guest_notifications (
+      id TEXT PRIMARY KEY,
+      report_id TEXT,
+      pool_id TEXT,
+      notification_type TEXT NOT NULL,
+      target_role TEXT NOT NULL,
+      affected_people_count INTEGER DEFAULT 0,
+      reassignment_plan TEXT,
+      message_content TEXT,
+      operator_id TEXT NOT NULL,
+      operator_name TEXT NOT NULL,
+      notified_at TEXT NOT NULL,
+      FOREIGN KEY (report_id) REFERENCES pool_abnormal_reports(id),
+      FOREIGN KEY (pool_id) REFERENCES pools(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS retest_records (
+      id TEXT PRIMARY KEY,
+      report_id TEXT NOT NULL,
+      pool_id TEXT NOT NULL,
+      temperature REAL,
+      water_level REAL,
+      mineral_level REAL,
+      foam_level TEXT,
+      reading_data TEXT,
+      photo_url TEXT,
+      result TEXT NOT NULL,
+      operator_id TEXT NOT NULL,
+      operator_name TEXT NOT NULL,
+      notes TEXT,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (report_id) REFERENCES pool_abnormal_reports(id),
+      FOREIGN KEY (pool_id) REFERENCES pools(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS group_conflicts (
+      id TEXT PRIMARY KEY,
+      pool_id TEXT NOT NULL,
+      group_name TEXT NOT NULL,
+      group_people_count INTEGER DEFAULT 0,
+      original_arrival_time TEXT NOT NULL,
+      actual_arrival_time TEXT,
+      scheduled_start_time TEXT NOT NULL,
+      scheduled_end_time TEXT NOT NULL,
+      conflict_reason TEXT NOT NULL,
+      affected_walkin_count INTEGER DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'pending',
+      operator_id TEXT NOT NULL,
+      operator_name TEXT NOT NULL,
+      notes TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (pool_id) REFERENCES pools(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS conflict_adjustments (
+      id TEXT PRIMARY KEY,
+      conflict_id TEXT NOT NULL,
+      pool_id TEXT NOT NULL,
+      entry_order TEXT,
+      catering_arrangement TEXT,
+      pool_change_plan TEXT,
+      compensation_amount REAL DEFAULT 0,
+      compensation_vouchers TEXT,
+      walkin_agreed INTEGER DEFAULT 0,
+      final_pool_arrival_time TEXT,
+      complaint_id TEXT,
+      compensation_id TEXT,
+      reception_rhythm TEXT,
+      operator_id TEXT NOT NULL,
+      operator_name TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (conflict_id) REFERENCES group_conflicts(id),
+      FOREIGN KEY (pool_id) REFERENCES pools(id),
+      FOREIGN KEY (complaint_id) REFERENCES complaints(id),
+      FOREIGN KEY (compensation_id) REFERENCES compensations(id)
+    );
   `);
 
   const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get().count;

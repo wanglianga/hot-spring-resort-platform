@@ -21,6 +21,12 @@ app.use('/api/frontdesk', require('./routes/frontdesk'));
 app.use('/api/patrols', require('./routes/patrols'));
 app.use('/api/complaints', require('./routes/complaints'));
 app.use('/api/compensations', require('./routes/compensations'));
+app.use('/api/pool-abnormal-reports', require('./routes/poolAbnormalReports'));
+app.use('/api/pool-abnormal-decisions', require('./routes/poolAbnormalDecisions'));
+app.use('/api/guest-notifications', require('./routes/guestNotifications'));
+app.use('/api/retest-records', require('./routes/retestRecords'));
+app.use('/api/group-conflicts', require('./routes/groupConflicts'));
+app.use('/api/conflict-adjustments', require('./routes/conflictAdjustments'));
 app.use('/api/stats', require('./routes/stats'));
 
 app.get('/api/health', (req, res) => {

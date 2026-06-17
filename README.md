@@ -245,6 +245,23 @@ docker compose config
 | PUT | `/api/compensations/:id` | 更新赔付审批 |
 | GET | `/api/stats/overview` | 工作台统计概览 |
 | GET | `/api/stats/pool/:poolId` | 汤池全量运营记录 |
+| GET | `/api/pool-abnormal-reports` | 异常报告列表 |
+| GET | `/api/pool-abnormal-reports/:id` | 异常报告详情（含决策、通知、复测） |
+| POST | `/api/pool-abnormal-reports` | 提交异常报告 |
+| PUT | `/api/pool-abnormal-reports/:id/status` | 更新异常报告状态 |
+| GET | `/api/pool-abnormal-decisions` | 异常决策列表 |
+| POST | `/api/pool-abnormal-decisions` | 提交处理决策（自动更新汤池状态） |
+| GET | `/api/guest-notifications` | 客人通知列表 |
+| POST | `/api/guest-notifications` | 发送客人通知 |
+| GET | `/api/retest-records` | 复测记录列表 |
+| POST | `/api/retest-records` | 提交复测记录（通过则自动重开汤池） |
+| GET | `/api/group-conflicts` | 团客冲突列表 |
+| GET | `/api/group-conflicts/:id` | 团客冲突详情（含调整方案） |
+| POST | `/api/group-conflicts` | 登记团客冲突 |
+| PUT | `/api/group-conflicts/:id/status` | 更新冲突状态 |
+| PUT | `/api/group-conflicts/:id/arrival` | 登记实际到达时间 |
+| GET | `/api/conflict-adjustments` | 冲突调整方案列表 |
+| POST | `/api/conflict-adjustments` | 提交调整方案 |
 
 ## 数据持久化
 

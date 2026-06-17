@@ -12,6 +12,8 @@ import FrontDesk from './pages/FrontDesk';
 import Patrols from './pages/Patrols';
 import Complaints from './pages/Complaints';
 import Compensations from './pages/Compensations';
+import PoolAbnormal from './pages/PoolAbnormal';
+import GroupConflict from './pages/GroupConflict';
 
 function App() {
   const { currentUser, loading } = useAuth();
@@ -40,6 +42,8 @@ function App() {
         <Route path="/patrols" element={<Patrols />} />
         <Route path="/complaints" element={<Complaints />} />
         <Route path="/compensations" element={<Compensations />} />
+        <Route path="/pool-abnormal" element={<PoolAbnormal />} />
+        <Route path="/group-conflict" element={<GroupConflict />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </MainLayout>
