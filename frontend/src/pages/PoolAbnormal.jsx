@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Card, Table, Button, Modal, Form, Input, InputNumber, Select, Space, Typography, Tag, Descriptions, message, Drawer, Upload } from 'antd';
-import { PlusOutlined, EyeOutlined, EditOutlined, CheckOutlined, BellOutlined, UploadOutlined } from '@ant-design/icons';
+import { Card, Table, Button, Modal, Form, Input, InputNumber, Select, Space, Typography, Tag, Descriptions, message, Drawer } from 'antd';
+import { PlusOutlined, EyeOutlined, EditOutlined, CheckOutlined, BellOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { poolAbnormalReportsApi, poolAbnormalDecisionsApi, guestNotificationsApi, retestRecordsApi, poolsApi, usersApi } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -306,19 +306,11 @@ export default function PoolAbnormal() {
               { label: '大量泡沫', value: '大量泡沫' }
             ]} placeholder="请选择泡沫情况" />
           </Form.Item>
-          <Form.Item name="readingData" label="读数数据">
-            <Input.TextArea rows={3} placeholder="请输入详细读数数据" />
+          <Form.Item name="readingData" label="读数数据" rules={[{ required: true, message: '请输入详细读数数据' }]}>
+            <Input.TextArea rows={3} placeholder="请输入详细读数数据（必填，例如：水温35.2°C，浊度2.1NTU，pH值7.2等）" />
           </Form.Item>
-          <Form.Item name="photoUrl" label="现场照片">
-            <Input placeholder="请输入照片URL或上传照片" />
-            <Upload
-              action="/api/upload"
-              listType="picture"
-              maxCount={3}
-              beforeUpload={() => false}
-            >
-              <Button icon={<UploadOutlined />}>上传照片</Button>
-            </Upload>
+          <Form.Item name="photoUrl" label="现场照片URL" rules={[{ required: true, message: '请填写现场照片URL' }, { type: 'url', message: '请输入有效的URL地址' }]}>
+            <Input placeholder="请填写现场照片的可访问URL（必填，例如：https://example.com/photos/pool-001.jpg 或内部存储路径）" />
           </Form.Item>
           <Form.Item name="notes" label="备注">
             <Input.TextArea rows={2} placeholder="其他说明" />
@@ -465,6 +457,11 @@ export default function PoolAbnormal() {
               </Descriptions.Item>
               <Descriptions.Item label="报告人">{detailData.operator_name}</Descriptions.Item>
               <Descriptions.Item label="读数数据">{detailData.reading_data || '-'}</Descriptions.Item>
+              <Descriptions.Item label="现场照片">
+                {detailData.photo_url ? (
+                  <a href={detailData.photo_url} target="_blank" rel="noreferrer">查看照片</a>
+                ) : '-'}
+              </Descriptions.Item>
               <Descriptions.Item label="备注">{detailData.notes || '-'}</Descriptions.Item>
             </Descriptions>
 
@@ -518,6 +515,10 @@ export default function PoolAbnormal() {
                 columns={[
                   { title: '时间', dataIndex: 'created_at', render: t => dayjs(t).format('MM-DD HH:mm') },
                   { title: '水温', dataIndex: 'temperature', render: v => v ? `${v}°C` : '-' },
+                  { title: '水位', dataIndex: 'water_level', render: v => v ? `${v}cm` : '-' },
+                  { title: '矿物质', dataIndex: 'mineral_level', render: v => v ? `${v}mg/L` : '-' },
+                  { title: '读数数据', dataIndex: 'reading_data', render: v => v ? v.length > 15 ? v.slice(0, 15) + '...' : v : '-' },
+                  { title: '复测照片', dataIndex: 'photo_url', render: v => v ? <a href={v} target="_blank" rel="noreferrer">查看</a> : '-' },
                   { title: '结果', dataIndex: 'result', render: s => <Tag color={retestResultMap[s]?.color}>{retestResultMap[s]?.text}</Tag> },
                   { title: '复测人', dataIndex: 'operator_name' }
                 ]}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, Table, Button, Modal, Form, Input, InputNumber, Select, Space, Typography, Tag, Descriptions, message, Drawer, DatePicker, Switch } from 'antd';
-import { PlusOutlined, EyeOutlined, EditOutlined, ClockCircleOutlined, WarningOutlined, GiftOutlined } from '@ant-design/icons';
+import { PlusOutlined, EyeOutlined, EditOutlined, ClockCircleOutlined, WarningOutlined, GiftOutlined, SolutionOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { groupConflictsApi, conflictAdjustmentsApi, poolsApi, complaintsApi, compensationsApi } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -24,12 +24,14 @@ export default function GroupConflict() {
   const [conflictModalOpen, setConflictModalOpen] = useState(false);
   const [adjustmentModalOpen, setAdjustmentModalOpen] = useState(false);
   const [arrivalModalOpen, setArrivalModalOpen] = useState(false);
+  const [customerServiceModalOpen, setCustomerServiceModalOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [detailData, setDetailData] = useState(null);
   const [conflictForm] = Form.useForm();
   const [adjustmentForm] = Form.useForm();
   const [arrivalForm] = Form.useForm();
+  const [customerServiceForm] = Form.useForm();
 
   const loadData = async () => {
     setLoading(true);
@@ -107,6 +109,38 @@ export default function GroupConflict() {
     } catch (err) {
       message.error('更新失败');
     }
+  };
+
+  const handleCustomerServiceSubmit = async (values) => {
+    try {
+      await conflictAdjustmentsApi.create({
+        conflictId: selectedRecord.id,
+        poolId: selectedRecord.pool_id,
+        walkinAgreed: 0,
+        finalPoolArrivalTime: values.finalPoolArrivalTime?.toISOString(),
+        complaintId: values.complaintId,
+        compensationId: values.compensationId,
+        receptionRhythm: values.receptionRhythm || '',
+        compensationVouchers: values.compensationVouchers || '',
+        compensationAmount: values.compensationAmount || 0,
+        operatorId: currentUser.id,
+        operatorName: currentUser.name
+      });
+      await groupConflictsApi.updateStatus(selectedRecord.id, { status: 'complaint' });
+      message.success('客服关联处理已提交');
+      setCustomerServiceModalOpen(false);
+      setSelectedRecord(null);
+      customerServiceForm.resetFields();
+      loadData();
+    } catch (err) {
+      message.error('提交失败');
+    }
+  };
+
+  const openCustomerServiceModal = (record) => {
+    setSelectedRecord(record);
+    customerServiceForm.resetFields();
+    setCustomerServiceModalOpen(true);
   };
 
   const openDetail = async (record) => {
@@ -189,7 +223,7 @@ export default function GroupConflict() {
     {
       title: '操作',
       key: 'action',
-      width: 260,
+      width: 360,
       render: (_, record) => (
         <Space size="small">
           <Button size="small" icon={<EyeOutlined />} onClick={() => openDetail(record)}>详情</Button>
@@ -198,6 +232,17 @@ export default function GroupConflict() {
           )}
           {record.status === 'pending' && (currentUser.role === 'frontdesk' || currentUser.role === 'admin') && (
             <Button size="small" type="primary" icon={<EditOutlined />} onClick={() => openAdjustmentModal(record)}>调整</Button>
+          )}
+          {(currentUser.role === 'customer_service' || currentUser.role === 'admin') && (
+            <Button
+              size="small"
+              danger={record.status === 'complaint'}
+              type={record.status === 'complaint' ? 'default' : 'primary'}
+              icon={<SolutionOutlined />}
+              onClick={() => openCustomerServiceModal(record)}
+            >
+              客服处理
+            </Button>
           )}
         </Space>
       )
@@ -359,6 +404,63 @@ export default function GroupConflict() {
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit" block icon={<GiftOutlined />}>提交调整方案</Button>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title="客服关联处理（散客不同意调整时使用）"
+        open={customerServiceModalOpen}
+        onCancel={() => { setCustomerServiceModalOpen(false); setSelectedRecord(null); customerServiceForm.resetFields(); }}
+        footer={null}
+        width={600}
+      >
+        <div style={{ background: '#fff1f0', border: '1px solid #ffa39e', padding: 12, borderRadius: 4, marginBottom: 16 }}>
+          <p style={{ margin: 0, color: '#cf1322', fontWeight: 500 }}>
+            <WarningOutlined /> 散客不同意调整时，请在此关联投诉、赔付和最终到池时间
+          </p>
+        </div>
+        <Form form={customerServiceForm} onFinish={handleCustomerServiceSubmit} layout="vertical">
+          <Form.Item name="complaintId" label="关联投诉记录" rules={[{ required: true, message: '请选择关联的投诉记录' }]}>
+            <Select
+              placeholder="请选择该散客对应的投诉记录（必填）"
+              options={complaints.map(c => ({ label: complaintMap[c.id], value: c.id }))}
+              showSearch
+              optionFilterProp="label"
+            />
+          </Form.Item>
+          <Form.Item name="compensationId" label="关联赔付记录" rules={[{ required: true, message: '请选择关联的赔付记录' }]}>
+            <Select
+              placeholder="请选择对应的赔付记录（必填）"
+              options={compensations.map(c => ({ label: compensationMap[c.id], value: c.id }))}
+              showSearch
+              optionFilterProp="label"
+            />
+          </Form.Item>
+          <Form.Item name="compensationAmount" label="补偿金额(元)">
+            <InputNumber min={0} step={0.01} style={{ width: '100%' }} placeholder="请输入实际补偿金额" />
+          </Form.Item>
+          <Form.Item name="compensationVouchers" label="补偿券">
+            <Select
+              mode="multiple"
+              placeholder="请选择或输入补偿券类型"
+              options={[
+                { label: '免费入场券', value: '免费入场券' },
+                { label: '餐饮抵扣券', value: '餐饮抵扣券' },
+                { label: 'VIP升级券', value: 'VIP升级券' },
+                { label: '下次消费折扣券', value: '下次消费折扣券' }
+              ]}
+              allowClear
+            />
+          </Form.Item>
+          <Form.Item name="finalPoolArrivalTime" label="最终到池时间" rules={[{ required: true, message: '请选择最终到池时间' }]}>
+            <DatePicker showTime style={{ width: '100%' }} placeholder="请选择散客最终到池时间（必填）" />
+          </Form.Item>
+          <Form.Item name="receptionRhythm" label="接待节奏说明（池区服务员可见）">
+            <Input.TextArea rows={2} placeholder="请描述最新的接待节奏安排，如：15:30散客改至VIP汤池，团客正常入池" />
+          </Form.Item>
+          <Form.Item>
+            <Button type="primary" danger htmlType="submit" block icon={<SolutionOutlined />}>提交客服关联处理</Button>
           </Form.Item>
         </Form>
       </Modal>

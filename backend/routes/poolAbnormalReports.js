@@ -37,8 +37,8 @@ router.post('/', (req, res) => {
     poolId, abnormalType, temperature, waterLevel, mineralLevel,
     foamLevel, readingData, photoUrl, operatorId, operatorName, notes
   } = req.body;
-  if (!poolId || !abnormalType || !operatorId || !operatorName) {
-    return res.status(400).json({ error: '汤池ID、异常类型和操作人信息为必填项' });
+  if (!poolId || !abnormalType || !operatorId || !operatorName || !readingData || !photoUrl) {
+    return res.status(400).json({ error: '汤池ID、异常类型、读数数据、现场照片URL和操作人信息为必填项' });
   }
   const id = uuidv4();
   const now = new Date().toISOString();
