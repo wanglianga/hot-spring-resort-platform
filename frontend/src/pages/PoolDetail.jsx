@@ -5,7 +5,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import {
   poolsApi, statsApi, waterQualityApi, mineralsApi,
-  disinfectionApi, drainageApi, maintenanceApi, closuresApi, patrolsApi
+  disinfectionApi, drainageApi, maintenanceApi, closuresApi, patrolsApi,
+  preventiveMaintenanceApi
 } from '../api';
 import { useAuth } from '../context/AuthContext';
 
@@ -26,6 +27,7 @@ export default function PoolDetail() {
   const [loading, setLoading] = useState(false);
   const [modalType, setModalType] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [healthProfile, setHealthProfile] = useState(null);
   const [form] = Form.useForm();
 
   const loadData = async () => {
@@ -37,6 +39,12 @@ export default function PoolDetail() {
       ]);
       setPool(poolRes.data);
       setDetail(detailRes.data);
+      try {
+        const healthRes = await preventiveMaintenanceApi.getHealthProfile(id);
+        setHealthProfile(healthRes.data);
+      } catch (e) {
+        setHealthProfile(null);
+      }
     } finally {
       setLoading(false);
     }
@@ -308,7 +316,9 @@ export default function PoolDetail() {
           { key: 'maintenance', label: '设备维修' },
           { key: 'closures', label: '闭池记录' },
           { key: 'patrols', label: '巡场记录' },
-          { key: 'complaints', label: '关联投诉' }
+          { key: 'complaints', label: '关联投诉' },
+          { key: 'preventiveExec', label: '预防性维护' },
+          { key: 'healthProfile', label: '健康档案' }
         ]}
         tabBarExtraContent={
           <Space>
@@ -423,6 +433,52 @@ export default function PoolDetail() {
                     )},
                     { title: '处理人', dataIndex: 'handler_name' }
                   ]} />
+              );
+            case 'preventiveExec':
+              return (
+                <Table size="small" dataSource={healthProfile?.executions || []} rowKey="id"
+                  columns={[
+                    timeCol,
+                    { title: '维护类型', dataIndex: 'maintenance_type', render: t => {
+                      const map = { routine_disinfection: '例行消毒', equipment_inspection: '设备检查', mineral_supplement: '矿物质补充', pipe_cleaning: '管道清洗' };
+                      return <Tag color="blue">{map[t] || t}</Tag>;
+                    }},
+                    { title: '实际时长', dataIndex: 'actual_duration_minutes', render: m => m ? `${m}分钟` : '-' },
+                    { title: '异常', dataIndex: 'abnormality_found', render: v => v ? <Tag color="red">有异常</Tag> : <Tag color="green">正常</Tag> },
+                    { title: '状态', dataIndex: 'status', render: s => (
+                      <Tag color={s === 'pending' ? 'orange' : s === 'in_progress' ? 'blue' : 'green'}>
+                        {s === 'pending' ? '待执行' : s === 'in_progress' ? '执行中' : '已完成'}
+                      </Tag>
+                    )},
+                    operatorCol
+                  ]} />
+              );
+            case 'healthProfile':
+              if (!healthProfile) return <div style={{ textAlign: 'center', padding: 24, color: '#999' }}>暂无健康档案数据</div>;
+              return (
+                <div>
+                  <Descriptions column={3} size="small" bordered style={{ marginBottom: 16 }}>
+                    <Descriptions.Item label="健康评分">
+                      <span style={{ color: healthProfile.health_score >= 80 ? '#52c41a' : healthProfile.health_score >= 60 ? '#faad14' : '#ff4d4f', fontWeight: 'bold', fontSize: 18 }}>
+                        {healthProfile.health_score}
+                      </span>
+                    </Descriptions.Item>
+                    <Descriptions.Item label="累计运行时长">{Math.round(healthProfile.total_running_hours)} 小时</Descriptions.Item>
+                    <Descriptions.Item label="维修次数">{healthProfile.repair_count}</Descriptions.Item>
+                    <Descriptions.Item label="水质达标率">{Math.round(healthProfile.water_quality_pass_rate)}%</Descriptions.Item>
+                    <Descriptions.Item label="上次深度保养">{healthProfile.last_deep_maintenance ? dayjs(healthProfile.last_deep_maintenance).format('YYYY-MM-DD') : '从未'}</Descriptions.Item>
+                    <Descriptions.Item label="风险提示">
+                      {healthProfile.health_score < 60 ? <Tag color="red">需紧急深度保养</Tag> :
+                       healthProfile.health_score < 80 ? <Tag color="orange">建议安排深度保养</Tag> :
+                       <Tag color="green">状态良好</Tag>}
+                    </Descriptions.Item>
+                  </Descriptions>
+                  {healthProfile.health_score < 80 && (
+                    <Button type="primary" onClick={() => navigate('/preventive-maintenance')}>
+                      前往安排深度保养
+                    </Button>
+                  )}
+                </div>
               );
             default:
               return null;

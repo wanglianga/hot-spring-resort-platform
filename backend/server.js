@@ -27,6 +27,7 @@ app.use('/api/guest-notifications', require('./routes/guestNotifications'));
 app.use('/api/retest-records', require('./routes/retestRecords'));
 app.use('/api/group-conflicts', require('./routes/groupConflicts'));
 app.use('/api/conflict-adjustments', require('./routes/conflictAdjustments'));
+app.use('/api/preventive-maintenance', require('./routes/preventiveMaintenance'));
 app.use('/api/stats', require('./routes/stats'));
 
 app.get('/api/health', (req, res) => {

@@ -114,4 +114,22 @@ export const conflictAdjustmentsApi = {
   create: (data) => api.post('/conflict-adjustments', data)
 };
 
+export const preventiveMaintenanceApi = {
+  listPlans: (params) => api.get('/preventive-maintenance/plans', { params }),
+  createPlan: (data) => api.post('/preventive-maintenance/plans', data),
+  updatePlan: (id, data) => api.put(`/preventive-maintenance/plans/${id}`, data),
+  deletePlan: (id) => api.delete(`/preventive-maintenance/plans/${id}`),
+  listExecutions: (params) => api.get('/preventive-maintenance/executions', { params }),
+  createExecution: (data) => api.post('/preventive-maintenance/executions', data),
+  startExecution: (id, data) => api.put(`/preventive-maintenance/executions/${id}/start`, data),
+  completeExecution: (id, data) => api.put(`/preventive-maintenance/executions/${id}/complete`, data),
+  listReminders: (params) => api.get('/preventive-maintenance/reminders', { params }),
+  markReminderRead: (id) => api.put(`/preventive-maintenance/reminders/${id}/read`),
+  listHealthProfiles: (params) => api.get('/preventive-maintenance/health-profiles', { params }),
+  getHealthProfile: (poolId) => api.get(`/preventive-maintenance/health-profiles/${poolId}`),
+  deepMaintenance: (poolId, data) => api.post(`/preventive-maintenance/health-profiles/${poolId}/deep-maintenance`, data),
+  generateReminders: () => api.post('/preventive-maintenance/generate-reminders'),
+  getDashboardAlerts: (params) => api.get('/preventive-maintenance/dashboard-alerts', { params })
+};
+
 export default api;

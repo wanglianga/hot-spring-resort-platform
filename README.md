@@ -262,6 +262,21 @@ docker compose config
 | PUT | `/api/group-conflicts/:id/arrival` | 登记实际到达时间 |
 | GET | `/api/conflict-adjustments` | 冲突调整方案列表 |
 | POST | `/api/conflict-adjustments` | 提交调整方案 |
+| GET | `/api/preventive-maintenance/plans` | 预防性维护计划列表 |
+| POST | `/api/preventive-maintenance/plans` | 创建维护计划 |
+| PUT | `/api/preventive-maintenance/plans/:id` | 更新维护计划 |
+| DELETE | `/api/preventive-maintenance/plans/:id` | 停用维护计划 |
+| GET | `/api/preventive-maintenance/executions` | 维护执行记录列表 |
+| POST | `/api/preventive-maintenance/executions` | 创建执行记录 |
+| PUT | `/api/preventive-maintenance/executions/:id/start` | 开始执行（记录维护前读数） |
+| PUT | `/api/preventive-maintenance/executions/:id/complete` | 完成执行（记录维护后读数，异常自动闭池） |
+| GET | `/api/preventive-maintenance/reminders` | 维护提醒列表 |
+| PUT | `/api/preventive-maintenance/reminders/:id/read` | 标记提醒已读 |
+| GET | `/api/preventive-maintenance/health-profiles` | 健康档案列表 |
+| GET | `/api/preventive-maintenance/health-profiles/:poolId` | 汤池健康档案详情 |
+| POST | `/api/preventive-maintenance/health-profiles/:poolId/deep-maintenance` | 记录深度保养 |
+| POST | `/api/preventive-maintenance/generate-reminders` | 生成维护提醒 |
+| GET | `/api/preventive-maintenance/dashboard-alerts` | 工作台预警数据 |
 
 ## 数据持久化
 

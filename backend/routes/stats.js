@@ -34,13 +34,23 @@ router.get('/overview', (req, res) => {
     SELECT COUNT(*) as count FROM patrol_records WHERE DATE(created_at) = ?
   `).get(today).count;
 
+  const lowHealthPools = db.prepare(`
+    SELECT COUNT(*) as count FROM pool_health_profiles WHERE health_score < 60
+  `).get().count;
+
+  const pendingReminders = db.prepare(`
+    SELECT COUNT(*) as count FROM maintenance_reminders WHERE is_read = 0 AND status IN ('pending', 'sent')
+  `).get().count;
+
   res.json({
     pools: poolStats,
     todayComplaints,
     pendingComplaints,
     pendingMaintenance,
     pendingCompensations,
-    todayPatrols
+    todayPatrols,
+    lowHealthPools,
+    pendingReminders
   });
 });
 
@@ -78,6 +88,14 @@ router.get('/pool/:poolId', (req, res) => {
     SELECT * FROM complaints WHERE pool_id = ? ORDER BY created_at DESC LIMIT 10
   `).all(poolId);
 
+  const healthProfile = db.prepare(`
+    SELECT * FROM pool_health_profiles WHERE pool_id = ?
+  `).get(poolId);
+
+  const preventiveExecutions = db.prepare(`
+    SELECT * FROM preventive_maintenance_executions WHERE pool_id = ? ORDER BY created_at DESC LIMIT 10
+  `).all(poolId);
+
   res.json({
     waterQuality,
     disinfection,
@@ -86,7 +104,9 @@ router.get('/pool/:poolId', (req, res) => {
     maintenance,
     closures,
     patrols,
-    complaints
+    complaints,
+    healthProfile,
+    preventiveExecutions
   });
 });
 

@@ -305,6 +305,87 @@ function initDatabase() {
       FOREIGN KEY (complaint_id) REFERENCES complaints(id),
       FOREIGN KEY (compensation_id) REFERENCES compensations(id)
     );
+
+    CREATE TABLE IF NOT EXISTS preventive_maintenance_plans (
+      id TEXT PRIMARY KEY,
+      pool_id TEXT NOT NULL,
+      plan_name TEXT NOT NULL,
+      maintenance_type TEXT NOT NULL,
+      schedule_weekday INTEGER NOT NULL,
+      schedule_time TEXT NOT NULL,
+      description TEXT,
+      estimated_duration_minutes INTEGER DEFAULT 60,
+      status TEXT NOT NULL DEFAULT 'active',
+      creator_id TEXT NOT NULL,
+      creator_name TEXT NOT NULL,
+      creator_role TEXT NOT NULL,
+      assignee_ids TEXT,
+      assignee_names TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (pool_id) REFERENCES pools(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS preventive_maintenance_executions (
+      id TEXT PRIMARY KEY,
+      plan_id TEXT NOT NULL,
+      pool_id TEXT NOT NULL,
+      maintenance_type TEXT NOT NULL,
+      scheduled_time TEXT NOT NULL,
+      actual_start_time TEXT,
+      actual_end_time TEXT,
+      actual_duration_minutes INTEGER,
+      readings_before TEXT,
+      readings_after TEXT,
+      abnormality_found INTEGER DEFAULT 0,
+      abnormality_description TEXT,
+      abnormal_report_id TEXT,
+      closure_id TEXT,
+      operator_id TEXT NOT NULL,
+      operator_name TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending',
+      notes TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (plan_id) REFERENCES preventive_maintenance_plans(id),
+      FOREIGN KEY (pool_id) REFERENCES pools(id),
+      FOREIGN KEY (abnormal_report_id) REFERENCES pool_abnormal_reports(id),
+      FOREIGN KEY (closure_id) REFERENCES pool_closures(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS pool_health_profiles (
+      id TEXT PRIMARY KEY,
+      pool_id TEXT NOT NULL UNIQUE,
+      total_running_hours REAL DEFAULT 0,
+      repair_count INTEGER DEFAULT 0,
+      water_quality_pass_count INTEGER DEFAULT 0,
+      water_quality_total_count INTEGER DEFAULT 0,
+      water_quality_pass_rate REAL DEFAULT 100,
+      health_score REAL DEFAULT 100,
+      last_deep_maintenance TEXT,
+      last_score_update TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (pool_id) REFERENCES pools(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS maintenance_reminders (
+      id TEXT PRIMARY KEY,
+      plan_id TEXT NOT NULL,
+      execution_id TEXT,
+      pool_id TEXT NOT NULL,
+      reminder_time TEXT NOT NULL,
+      scheduled_time TEXT NOT NULL,
+      maintenance_type TEXT NOT NULL,
+      message TEXT,
+      target_roles TEXT NOT NULL,
+      target_user_ids TEXT,
+      is_read INTEGER DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'pending',
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (plan_id) REFERENCES preventive_maintenance_plans(id),
+      FOREIGN KEY (pool_id) REFERENCES pools(id)
+    );
   `);
 
   const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get().count;
@@ -349,6 +430,20 @@ function initDatabase() {
     ];
     pools.forEach(([id, name, zone, status, temperature, capacity, minerals, description]) => {
       insertPool.run(id, name, zone, status, temperature, capacity, minerals, description, now, now);
+    });
+  }
+
+  const healthCount = db.prepare('SELECT COUNT(*) as count FROM pool_health_profiles').get().count;
+  if (healthCount === 0) {
+    const insertHealth = db.prepare(`
+      INSERT INTO pool_health_profiles (id, pool_id, total_running_hours, repair_count, water_quality_pass_count, water_quality_total_count, water_quality_pass_rate, health_score, last_deep_maintenance, last_score_update, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    const now = new Date().toISOString();
+    const poolIds = ['pool-001','pool-002','pool-003','pool-004','pool-005','pool-006','pool-007','pool-008','pool-009','pool-010'];
+    poolIds.forEach(pid => {
+      const hid = 'health-' + pid;
+      insertHealth.run(hid, pid, 1200, 3, 45, 50, 90, 85, null, now, now, now);
     });
   }
 }

@@ -13,7 +13,8 @@ import {
   UserOutlined,
   BellOutlined,
   ThunderboltOutlined,
-  TeamOutlined
+  TeamOutlined,
+  ScheduleOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../context/AuthContext';
 
@@ -37,12 +38,14 @@ const menuConfig = {
     { key: '/', icon: <DashboardOutlined />, label: '工作台' },
     { key: '/pools', icon: <FundOutlined />, label: '汤池管理' },
     { key: '/water-quality', icon: <SafetyCertificateOutlined />, label: '水质检测' },
+    { key: '/preventive-maintenance', icon: <ScheduleOutlined />, label: '预防性维护' },
     { key: '/pool-abnormal', icon: <ThunderboltOutlined />, label: '异常闭池' }
   ],
   engineering: [
     { key: '/', icon: <DashboardOutlined />, label: '工作台' },
     { key: '/pools', icon: <FundOutlined />, label: '汤池管理' },
     { key: '/maintenance', icon: <ToolOutlined />, label: '设备维修' },
+    { key: '/preventive-maintenance', icon: <ScheduleOutlined />, label: '预防性维护' },
     { key: '/pool-abnormal', icon: <ThunderboltOutlined />, label: '异常闭池' }
   ],
   housekeeper: [
@@ -63,6 +66,7 @@ const menuConfig = {
     { key: '/pools', icon: <FundOutlined />, label: '汤池管理' },
     { key: '/water-quality', icon: <SafetyCertificateOutlined />, label: '水质检测' },
     { key: '/maintenance', icon: <ToolOutlined />, label: '设备维修' },
+    { key: '/preventive-maintenance', icon: <ScheduleOutlined />, label: '预防性维护' },
     { key: '/frontdesk', icon: <DesktopOutlined />, label: '前厅服务' },
     { key: '/patrols', icon: <EyeOutlined />, label: '巡场记录' },
     { key: '/complaints', icon: <WarningOutlined />, label: '客诉处理' },

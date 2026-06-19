@@ -14,6 +14,7 @@ import Complaints from './pages/Complaints';
 import Compensations from './pages/Compensations';
 import PoolAbnormal from './pages/PoolAbnormal';
 import GroupConflict from './pages/GroupConflict';
+import PreventiveMaintenance from './pages/PreventiveMaintenance';
 
 function App() {
   const { currentUser, loading } = useAuth();
@@ -44,6 +45,7 @@ function App() {
         <Route path="/compensations" element={<Compensations />} />
         <Route path="/pool-abnormal" element={<PoolAbnormal />} />
         <Route path="/group-conflict" element={<GroupConflict />} />
+        <Route path="/preventive-maintenance" element={<PreventiveMaintenance />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </MainLayout>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Row, Col, Card, Statistic, Table, Tag, Typography } from 'antd';
+import { Row, Col, Card, Statistic, Table, Tag, Typography, Alert, Badge, Button } from 'antd';
 import {
   FundOutlined,
   WarningOutlined,
@@ -8,11 +8,15 @@ import {
   EyeOutlined,
   FireOutlined,
   CloseCircleOutlined,
-  WarningFilled
+  WarningFilled,
+  ScheduleOutlined,
+  HeartOutlined,
+  BellOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
-import { statsApi, poolsApi, complaintsApi, maintenanceApi } from '../api';
+import { statsApi, poolsApi, complaintsApi, maintenanceApi, preventiveMaintenanceApi } from '../api';
+import { useAuth } from '../context/AuthContext';
 
 const { Title } = Typography;
 
@@ -30,23 +34,27 @@ const statusText = {
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const [stats, setStats] = useState(null);
   const [pools, setPools] = useState([]);
   const [complaints, setComplaints] = useState([]);
   const [maintenance, setMaintenance] = useState([]);
+  const [pmAlerts, setPmAlerts] = useState(null);
 
   const loadData = async () => {
     try {
-      const [statsRes, poolsRes, complaintsRes, maintenanceRes] = await Promise.all([
+      const [statsRes, poolsRes, complaintsRes, maintenanceRes, alertsRes] = await Promise.all([
         statsApi.overview(),
         poolsApi.list(),
         complaintsApi.list({ status: 'pending' }),
-        maintenanceApi.list({ status: 'pending' })
+        maintenanceApi.list({ status: 'pending' }),
+        preventiveMaintenanceApi.getDashboardAlerts({ role: currentUser?.role }).catch(() => ({ data: { reminders: [], lowScoreProfiles: [], pendingExecutions: [] } }))
       ]);
       setStats(statsRes.data);
       setPools(poolsRes.data);
       setComplaints(complaintsRes.data);
       setMaintenance(maintenanceRes.data);
+      setPmAlerts(alertsRes.data);
     } catch (err) {
       console.error('加载数据失败', err);
     }
@@ -210,7 +218,71 @@ export default function Dashboard() {
             />
           </Card>
         </Col>
+        <Col xs={24} sm={12} md={4}>
+          <Card className="stat-card">
+            <Statistic
+              title="维护提醒"
+              value={pmAlerts?.reminders?.length || 0}
+              valueStyle={{ color: '#722ed1' }}
+              prefix={<BellOutlined />}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={4}>
+          <Card className="stat-card">
+            <Statistic
+              title="健康预警"
+              value={pmAlerts?.lowScoreProfiles?.length || 0}
+              valueStyle={{ color: '#ff4d4f' }}
+              prefix={<HeartOutlined />}
+            />
+          </Card>
+        </Col>
       </Row>
+
+      {pmAlerts?.lowScoreProfiles?.length > 0 && (
+        <Alert
+          message="汤池健康预警"
+          description={
+            pmAlerts.lowScoreProfiles.map(p =>
+              `${p.pool_name || p.pool_id}（评分：${p.health_score}）`
+            ).join('、') + '，健康评分低于阈值，请尽快安排深度保养！'
+          }
+          type="warning"
+          showIcon
+          icon={<HeartOutlined />}
+          style={{ marginBottom: 16 }}
+          action={
+            <Button size="small" type="primary" onClick={() => navigate('/preventive-maintenance')}>
+              查看详情
+            </Button>
+          }
+        />
+      )}
+
+      {pmAlerts?.reminders?.filter(r => !r.is_read)?.length > 0 && (
+        <Card
+          title={
+            <span>
+              <BellOutlined style={{ marginRight: 8 }} />
+              预防性维护提醒
+              <Badge count={pmAlerts.reminders.filter(r => !r.is_read).length} style={{ marginLeft: 8 }} />
+            </span>
+          }
+          size="small"
+          style={{ marginBottom: 16 }}
+        >
+          {pmAlerts.reminders.filter(r => !r.is_read).slice(0, 3).map(r => (
+            <div key={r.id} style={{ padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>
+              <Tag color={r.maintenance_type === 'abnormal_closure' ? 'red' : 'blue'}>
+                {r.maintenance_type === 'abnormal_closure' ? '紧急' : '维护'}
+              </Tag>
+              <span>{r.message}</span>
+              <span style={{ color: '#999', marginLeft: 8 }}>{dayjs(r.scheduled_time).format('MM-DD HH:mm')}</span>
+            </div>
+          ))}
+        </Card>
+      )}
 
       <Row gutter={[16, 16]}>
         <Col xs={24}>
